@@ -1,0 +1,52 @@
+CREATE DATABASE IF NOT EXISTS gym CHARACTER SET utf8mb4;
+USE gym;
+
+CREATE TABLE users (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  login_id VARCHAR(30) NOT NULL UNIQUE,
+  password_hash VARCHAR(255) NOT NULL,
+  role ENUM('admin','member') NOT NULL
+) ENGINE=InnoDB;
+
+CREATE TABLE members (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  user_id INT NOT NULL UNIQUE,
+  name VARCHAR(100) NOT NULL,
+  address VARCHAR(200) NOT NULL DEFAULT '',
+  phone VARCHAR(20) NOT NULL,
+  birthday CHAR(5) NULL,                      -- MM-DD
+  duration_months TINYINT NOT NULL DEFAULT 1,
+  expiry_date DATE NOT NULL,
+  status ENUM('paid','unpaid') NOT NULL DEFAULT 'unpaid',
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  reminder_sent TINYINT(1) NOT NULL DEFAULT 0,
+  expired_msg_sent TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+  INDEX (expiry_date)
+) ENGINE=InnoDB;
+
+CREATE TABLE payments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  member_id INT NOT NULL,
+  amount INT NOT NULL,
+  method VARCHAR(20) NOT NULL,
+  paid_at DATETIME NOT NULL,
+  FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE,
+  INDEX (paid_at)
+) ENGINE=InnoDB;
+
+CREATE TABLE attendance (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  member_id INT NOT NULL,
+  day DATE NOT NULL,
+  UNIQUE KEY (member_id, day),
+  FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
+
+CREATE TABLE renew_requests (
+  member_id INT PRIMARY KEY,
+  seen TINYINT(1) NOT NULL DEFAULT 0,
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (member_id) REFERENCES members(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
